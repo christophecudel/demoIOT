@@ -122,7 +122,7 @@
                         seuilSpan.innerText = `Seuil de : ${seuil}`;
                         
                         // Changer la couleur selon le seuil
-                        if (comptage > seuil) {
+                        if (comptage < seuil) {
                             resultDiv.style.backgroundColor = "red";
                         } else {
                             resultDiv.style.backgroundColor = "green";
