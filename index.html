@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Démo Cognex - IUT GEII</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.2.8/mqtt.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #result {
+            font-size: 2em;
+            width: 250px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Résultat du Comptage</h1>
+
+    <!-- Affichage du résultat -->
+    <div id="result" style="background-color: gray;">En attente...</div>
+
+    <script>
+        // Connexion au broker MQTT public
+        const client = mqtt.connect("wss://test.mosquitto.org:8081/mqtt");
+
+        // Récupération du paramètre "cam" dans l'URL (indiqué par le QR Code)
+        const urlParams = new URLSearchParams(window.location.search);
+        const cameraTopic = urlParams.get('cam');  // ex: "geii_7802" ou "geii_7802C"
+
+        if (cameraTopic) {
+            console.log("Caméra sélectionnée :", cameraTopic);
+            
+            // Envoi de la trame SNAP au bon topic MQTT
+            client.on("connect", function () {
+                client.publish(cameraTopic, "snap");
+                console.log("Commande envoyée à :", cameraTopic);
+            });
+        }
+
+        // Abonnement au topic MQTT qui contient comptage + seuil
+        client.subscribe("geii_result");
+
+        // Réception des messages MQTT
+        client.on("message", function (topic, message) {
+            let msg = message.toString();
+            console.log(`Message reçu sur ${topic} :`, msg);
+
+            if (topic === "geii_result") {
+                try {
+                    let data = JSON.parse(msg);  // Conversion JSON
+                    let comptage = parseInt(data.comptage);
+                    let seuil = parseInt(data.seuil);
+                    
+                    // Mise à jour de l'affichage
+                    let resultDiv = document.getElementById("result");
+                    resultDiv.innerText = `Comptage : ${comptage} / Seuil : ${seuil}`;
+                    
+                    // Changement de couleur selon le seuil
+                    if (comptage > seuil) {
+                        resultDiv.style.backgroundColor = "red";
+                    } else {
+                        resultDiv.style.backgroundColor = "green";
+                    }
+
+                } catch (e) {
+                    console.error("Erreur JSON :", e);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
