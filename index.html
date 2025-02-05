@@ -8,29 +8,41 @@
             font-family: Arial, sans-serif;
             text-align: center;
         }
-        #result {
+        .result-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .result-box {
             font-size: 2em;
             width: 250px;
-            margin: 20px auto;
             padding: 20px;
             border-radius: 10px;
             color: white;
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <h1>Résultat du Comptage</h1>
 
-    <!-- Affichage du résultat -->
-    <div id="result" style="background-color: gray;">En attente...</div>
+    <!-- Affichage des résultats pour chaque caméra -->
+    <div class="result-container">
+        <div id="result_7802" class="result-box" style="background-color: gray;">
+            7802 : En attente...
+        </div>
+        <div id="result_7802C" class="result-box" style="background-color: gray;">
+            7802C : En attente...
+        </div>
+    </div>
 
     <script>
         // Connexion au broker MQTT public
         const client = mqtt.connect("wss://test.mosquitto.org:8081/mqtt");
 
-        // Récupération du paramètre "cam" dans l'URL (indiqué par le QR Code)
+        // Déterminer la caméra sélectionnée en fonction de l'URL du QR Code
         const urlParams = new URLSearchParams(window.location.search);
-        const cameraTopic = urlParams.get('cam');  // ex: "geii_7802" ou "geii_7802C"
+        const cameraTopic = urlParams.get('cam');  // "geii_7802" ou "geii_7802C"
 
         if (cameraTopic) {
             console.log("Caméra sélectionnée :", cameraTopic);
@@ -42,7 +54,7 @@
             });
         }
 
-        // Abonnement au topic MQTT qui contient comptage + seuil
+        // S'abonner aux messages des résultats
         client.subscribe("geii_result");
 
         // Réception des messages MQTT
@@ -55,18 +67,21 @@
                     let data = JSON.parse(msg);  // Conversion JSON
                     let comptage = parseInt(data.comptage);
                     let seuil = parseInt(data.seuil);
-                    
-                    // Mise à jour de l'affichage
-                    let resultDiv = document.getElementById("result");
-                    resultDiv.innerText = `Comptage : ${comptage} / Seuil : ${seuil}`;
-                    
-                    // Changement de couleur selon le seuil
-                    if (comptage > seuil) {
-                        resultDiv.style.backgroundColor = "red";
-                    } else {
-                        resultDiv.style.backgroundColor = "green";
-                    }
+                    let camera = data.camera; // Déterminer la caméra source
 
+                    // Sélectionner le bon affichage en fonction de la caméra
+                    let resultDiv = document.getElementById(`result_${camera}`);
+
+                    if (resultDiv) {
+                        resultDiv.innerText = `${camera} : ${comptage} / Seuil : ${seuil}`;
+                        
+                        // Changer la couleur selon le seuil
+                        if (comptage > seuil) {
+                            resultDiv.style.backgroundColor = "red";
+                        } else {
+                            resultDiv.style.backgroundColor = "green";
+                        }
+                    }
                 } catch (e) {
                     console.error("Erreur JSON :", e);
                 }
