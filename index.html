@@ -35,16 +35,27 @@
             text-align: center;
             line-height: 1.5;
         }
+        .logo {
+            max-width: 50%; /* La moitié de la largeur de l’écran */
+            height: auto; /* Garde les proportions */
+            display: block;
+            margin: 20px auto;
+        }
+
     </style>
 </head>
 <body>
     <h1>Résultat du Comptage</h1>
+
+    <img src="images/logo-uha.png" alt="Logo Démo IOT" class="logo">
+
 
     <!-- Affichage des QR Codes -->
     <div class="qr-container">
         <div class="qr-box">
             <p>Caméra 7802 (Monochrome)</p>
             <img src="images/qr_geii_7802.png" alt="QR Code 7802" width="150">
+            
         </div>
         <div class="qr-box">
             <p>Caméra 7802C (Couleur)</p>
